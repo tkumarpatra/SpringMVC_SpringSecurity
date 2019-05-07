@@ -1,5 +1,8 @@
 package com.fsd.cts.web;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -28,22 +31,17 @@ public class UserController {
     @RequestMapping(value = "/registration", method = RequestMethod.GET)
     public String registration(Model model) {
         model.addAttribute("userForm", new User());
-
         return "registration";
     }
 
     @RequestMapping(value = "/registration", method = RequestMethod.POST)
     public String registration(@ModelAttribute("userForm") User userForm, BindingResult bindingResult, Model model) {
         userValidator.validate(userForm, bindingResult);
-
         if (bindingResult.hasErrors()) {
             return "registration";
         }
-
         userService.save(userForm);
-
         securityService.autologin(userForm.getUsername(), userForm.getPasswordConfirm());
-
         return "redirect:/welcome";
     }
 
@@ -51,34 +49,36 @@ public class UserController {
     public String login(Model model, String error, String logout) {
         if (error != null)
             model.addAttribute("error", "Your username and password is invalid.");
-
         if (logout != null)
             model.addAttribute("message", "You have been logged out successfully.");
-
         return "login";
     }
 
     @RequestMapping(value = {"/", "/welcome"}, method = RequestMethod.GET)
-    public ModelAndView welcome(@ModelAttribute("userForm") User userForm, BindingResult bindingResult, ModelAndView model) {
+    public ModelAndView welcome(@ModelAttribute("userForm") User userForm, 
+    			BindingResult bindingResult, ModelAndView model,
+    			 HttpServletRequest request, HttpServletResponse response) {
         
-    	
+    	String username = null != request ? request.getUserPrincipal().getName(): "";
+    	userForm = userService.findByUsername(username);
     	model.addObject("userDetails", userForm);
     	model.setViewName("welcome");
-    	
     	return model;
     }
     
     @RequestMapping(value = "/update", method = RequestMethod.POST)
-    public ModelAndView update(@ModelAttribute("userForm") User userForm, ModelAndView andView) {
+    public ModelAndView update(@ModelAttribute("userForm") User userForm, BindingResult bindingResult, ModelAndView modelView) {
 
+    	if (bindingResult.hasErrors()) {
+    		modelView.addObject("userDetails", userForm);
+            
+            modelView.setViewName("redirect:/welcome");
+            return modelView;
+        }
         userService.updateUserDetails(userForm);
-
         securityService.autologin(userForm.getUsername(), userForm.getPasswordConfirm());
-        
-        andView.addObject("userDetails", userForm);
-        
-        andView.setViewName("redirect:/welcome");
-        
-        return andView;
+        modelView.addObject("userDetails", userForm);
+        modelView.setViewName("redirect:/welcome");
+        return modelView;
     }
 }

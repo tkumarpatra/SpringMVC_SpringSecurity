@@ -8,6 +8,8 @@ import java.util.Set;
 @Table(name = "user")
 public class User {
     private Long id;
+    private String name;
+    private String email;
     private String username;
     private String password;
     private String passwordConfirm;
@@ -57,4 +59,20 @@ public class User {
     public void setRoles(Set<Role> roles) {
         this.roles = roles;
     }
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
 }
