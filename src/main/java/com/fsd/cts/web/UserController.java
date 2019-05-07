@@ -7,6 +7,8 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.servlet.ModelAndView;
+
 import com.fsd.cts.model.User;
 import com.fsd.cts.service.SecurityService;
 import com.fsd.cts.service.UserService;
@@ -57,7 +59,26 @@ public class UserController {
     }
 
     @RequestMapping(value = {"/", "/welcome"}, method = RequestMethod.GET)
-    public String welcome(Model model) {
-        return "welcome";
+    public ModelAndView welcome(@ModelAttribute("userForm") User userForm, BindingResult bindingResult, ModelAndView model) {
+        
+    	
+    	model.addObject("userDetails", userForm);
+    	model.setViewName("welcome");
+    	
+    	return model;
+    }
+    
+    @RequestMapping(value = "/update", method = RequestMethod.POST)
+    public ModelAndView update(@ModelAttribute("userForm") User userForm, ModelAndView andView) {
+
+        userService.updateUserDetails(userForm);
+
+        securityService.autologin(userForm.getUsername(), userForm.getPasswordConfirm());
+        
+        andView.addObject("userDetails", userForm);
+        
+        andView.setViewName("redirect:/welcome");
+        
+        return andView;
     }
 }
