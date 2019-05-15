@@ -30,22 +30,40 @@
 
 <div class="container">
 
-    <form method="POST" action="${contextPath}/login" class="form-signin">
+    <form:form method="POST" action="${contextPath}/login" class="form-signin" modelAttribute="login" commandName="login">
         <h2 class="form-heading">Log in</h2>
 
         <div class="form-group ${error != null ? 'has-error' : ''}">
             <span>${message}</span>
-            <input name="username" type="text" class="form-control" placeholder="Username"
-                   autofocus="true"/>
-            <input name="password" type="password" class="form-control" placeholder="Password"/>
+            <form:input name="username" type="text" class="form-control" placeholder="Username" path="userId" autofocus="true"/>
+            <form:input name="password" type="password" class="form-control" path="password" placeholder="Password"/>
             <span>${error}</span>
             <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
-
+			
+			<table>
+				<tr>
+					<td>
+						<div>
+							<img id="captcha_id" name="imgCaptcha" src="captcha.jpg">
+						</div>
+					</td>
+					<td align="left"><a href="javascript:;"
+						title="change captcha text"
+						onclick="document.getElementById('captcha_id').src = 'captcha.jpg?' + Math.random();  return false">
+							<img src="${contextPath}/resources/image/refresh.png" /></a>
+					</td>
+					<td><form:input path="captcha" class="form-control" placeholder="Captcha"/></td>
+				</tr>
+				<tr>
+					<td colspan="2"><form:errors path="captcha" cssClass="error" /></td>
+				</tr>
+			</table>
+			
             <button class="btn btn-lg btn-primary btn-block" type="submit">Log In</button>
             <h4 class="text-center"><a href="${contextPath}/registration">Create an account</a></h4>
         </div>
 
-    </form>
+    </form:form>
 
 </div>
 <!-- /container -->

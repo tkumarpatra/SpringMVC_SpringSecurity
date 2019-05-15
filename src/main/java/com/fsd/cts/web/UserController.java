@@ -2,6 +2,7 @@ package com.fsd.cts.web;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 
+import com.fsd.cts.model.Login;
 import com.fsd.cts.model.User;
 import com.fsd.cts.service.SecurityService;
 import com.fsd.cts.service.UserService;
@@ -46,18 +48,43 @@ public class UserController {
     }
 
     @RequestMapping(value = "/login", method = RequestMethod.GET)
-    public String login(Model model, String error, String logout) {
-        if (error != null)
-            model.addAttribute("error", "Your username and password is invalid.");
-        if (logout != null)
-            model.addAttribute("message", "You have been logged out successfully.");
-        return "login";
+    public ModelAndView login(ModelAndView model, String error, String logout, 
+    		@ModelAttribute("login") Login login,BindingResult result, HttpSession session) {
+        if (error != null) {
+        	model.addObject("error", "Your username and password is invalid.");
+        	model.setViewName("login");
+        	return model;
+        }
+        if (logout != null) {
+            model.addObject("message", "You have been logged out successfully.");
+            model.setViewName("login");
+        	return model;
+        }
+        
+        String captcha=(String)session.getAttribute("CAPTCHA");
+        
+        if(null == error && logout == null && captcha == null) {
+        	model.setViewName("login");
+        	return model;
+        }else
+        
+	    if(captcha==null || (captcha!=null && !captcha.equals(login.getCaptcha()))){
+	    	login.setCaptcha("");
+	    	model.addObject("message", "Captcha does not match");
+	    	model.setViewName("login");
+	    	return model;
+	    }
+        
+        model.setViewName("login");
+        model.addObject("login",login);
+    	return model;
     }
 
     @RequestMapping(value = {"/", "/welcome"}, method = RequestMethod.GET)
     public ModelAndView welcome(@ModelAttribute("userForm") User userForm, 
     			BindingResult bindingResult, ModelAndView model,
-    			 HttpServletRequest request, HttpServletResponse response) {
+    			 HttpServletRequest request, HttpServletResponse response,
+    			 HttpSession session, @ModelAttribute("loginForm") Login login) {
         
     	String username = null != request ? request.getUserPrincipal().getName(): "";
     	userForm = userService.findByUsername(username);
